@@ -56,22 +56,23 @@ public class LogEntity {
     }
 
     public String ApiKeySubString(String url) {
-        int indexOf = url.indexOf('?');
-        if (indexOf == -1) {
+        int startIndex = url.indexOf("search/");
+        int endIndexOf = url.indexOf('?');
+        if (endIndexOf == -1 || startIndex == -1) {
             return "fail";
         }
-        String apiServiceId;
-        apiServiceId = url.substring(28, indexOf);
-        return apiServiceId;
+        startIndex = startIndex + 7; // 앞글자 기준 => 단어 크기만큼 더해줘야된다.
+
+        return url.substring(startIndex, endIndexOf);
     }
 
     public String extractApiKey(String url) {
-        int tempIndex = url.indexOf("apikey");
-        if (tempIndex == -1) {
+        int startIndex = url.indexOf("apikey=");
+        int endIndex = url.indexOf("&");
+        if (startIndex == -1 || endIndex == -1) {
             return "fail";
         }
-        String apikey = url.substring(tempIndex, url.indexOf("&"));
-        return apikey.substring(apikey.length()-4);
+        return url.substring(startIndex + 7, endIndex);
     }
 
     public ApiKeyStatus convertStringToApiKeyStatus(String apiKeySubString) {

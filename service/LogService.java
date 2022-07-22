@@ -1,4 +1,4 @@
-package controller;
+package service;
 
 
 import Entity.LogEntity;
@@ -28,20 +28,20 @@ public class LogService {
     }
 
     // 최다 호출 APIKEY
-    public Optional<Map.Entry<String, Integer>> selectMaxApiKey(List<LogEntity> logs) {
+    public Optional<String> selectMaxApiKey(List<LogEntity> logs) {
         HashMap<String, Integer> apiKeyMap = new HashMap<>();
 
         for (LogEntity log : logs) {
             if (log.getHttpMessage() != HttpMessageStatus.SUCCESS) continue;
             String apiKey = log.getApiKey();
-            apiKeyMap.put(apiKey, apiKeyMap.getOrDefault(apiKey, 0)+1);
+            apiKeyMap.put(apiKey, apiKeyMap.getOrDefault(apiKey, 0) + 1);
         }
 
         List<Map.Entry<String, Integer>> collect = apiKeyMap.entrySet().stream()
                 .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
                 .collect(Collectors.toList());
 
-        return  Optional.of(collect.get(0));
+        return Optional.of(collect.get(0).getKey());
     }
 
     // 상위 3개의 API Service ID 와 각각 요청 수
@@ -51,34 +51,37 @@ public class LogService {
         for (LogEntity log : logs) {
             if (log.getHttpMessage() != HttpMessageStatus.SUCCESS) continue;
             ApiKeyStatus apiServiceId = log.getApiServiceId();
-            apiKeyMap.put(apiServiceId, apiKeyMap.getOrDefault(apiServiceId, 0)+1);
+            apiKeyMap.put(apiServiceId, apiKeyMap.getOrDefault(apiServiceId, 0) + 1);
         }
 
         List<Map.Entry<ApiKeyStatus, Integer>> collect = apiKeyMap.entrySet().stream()
                 .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
                 .collect(Collectors.toList());
 
-        return  Optional.of(collect.subList(0, 3));
+        return Optional.of(collect.subList(0, 3));
     }
 
     // 웹 브라우저별 사용 비율
-    public Optional<HashMap<String, Double>> selectBrowserPercent(List<LogEntity> logs) {
+    public Optional<List<Map.Entry<String, Double>>> selectBrowserRatio(List<LogEntity> logs) {
         HashMap<String, Integer> browserMap = new HashMap<>();
-        HashMap<String, Double> browserPercentMap = new HashMap<>();
+        HashMap<String, Double> browserRatioMap = new HashMap<>();
 
         int total = 0;
         for (LogEntity log : logs) {
             if (log.getHttpMessage() != HttpMessageStatus.SUCCESS) continue;
             String browser = log.getBrowser();
-            browserMap.put(browser, browserMap.getOrDefault(browser, 0)+1);
+            browserMap.put(browser, browserMap.getOrDefault(browser, 0) + 1);
             total++;
         }
 
-        for (String s : browserMap.keySet()) {
-            double percent = ((double)browserMap.get(s) / total) * 100;
-            browserPercentMap.put(s, Math.floor(percent*1000)/1000);
+        for (String key : browserMap.keySet()) {
+            double percent = ((double) browserMap.get(key) / total) * 100;
+            browserRatioMap.put(key, Math.floor(percent * 1000) / 1000);
         }
 
-        return Optional.of(browserPercentMap);
+        List<Map.Entry<String, Double>> collect = browserRatioMap.entrySet().stream()
+                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+                .collect(Collectors.toList());
+        return Optional.of(collect);
     }
 }
